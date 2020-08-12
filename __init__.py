@@ -1,0 +1,1 @@
+"""Integration for EDSM API"""

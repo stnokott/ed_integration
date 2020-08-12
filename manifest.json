@@ -1,0 +1,11 @@
+{
+  "domain": "ed_cmdr",
+  "name": "Elite Dangerous Cmdr",
+  "documentation": "https://github.com/stnokott/ed_integration/wiki",
+  "issue_tracker": "https://github.com/stnokott/ed_integration/issues",
+  "dependencies": [],
+  "after_dependencies": ["http"],
+  "codeowners": ["@stnokott"],
+  "requirements": ["requests==2.24.0"],
+  "quality_scale": "silver"
+}
