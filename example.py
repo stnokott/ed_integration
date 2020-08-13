@@ -4,16 +4,24 @@ import locale
 EDSM_API_KEY = '2ead48e5586e056cd566ecce6d692c387f65967b'  # TODO: move to config, check for empty (make None if so)
 CMDR_NAME = 'Peek-A-Chu'
 URL_STATUS = 'https://www.edsm.net/api-status-v1/elite-server'
-URL_SYSTEM_INFO = 'https://www.edsm.net/api-v1/system'
-URL_LAST_LOCATION = 'https://www.edsm.net/api-logs-v1/get-position'
-URL_BALANCE = 'https://www.edsm.net/api-commander-v1/get-credits'
+URL_SYSTEM = 'https://www.edsm.net/api-v1/system'
+URL_POSITION = 'https://www.edsm.net/api-logs-v1/get-position'
+URL_CREDITS = 'https://www.edsm.net/api-commander-v1/get-credits'
 
 locale.setlocale(locale.LC_ALL, '')
+
+event_codes = {
+    201: 'Commander name not found',
+    203: 'Invalid API key or commander name',
+    208: 'No credit-data available'
+}
 
 
 def api_is_online():
     r = requests.get(URL_STATUS)
     return r.json()['status'] == 2
+
+# TODO: error code resolving
 
 
 def get_system_allegiance(system_name: str):
@@ -21,9 +29,12 @@ def get_system_allegiance(system_name: str):
         'systemName': system_name,
         'showInformation': 1
     }
-    r = requests.get(URL_SYSTEM_INFO, params)
+    r = requests.get(URL_SYSTEM, params)
     try:
-        return r.json()['information']['allegiance']
+        information = r.json()['information']
+        if 'allegiance' not in information:
+            return 'Independent'
+        return information['allegiance']
     except (KeyError, TypeError):
         return None
 
@@ -34,10 +45,13 @@ def get_last_known_position(include_allegiance: bool):
         'commanderName': CMDR_NAME,
         'apiKey': api_key
     }
-    r = requests.get(URL_LAST_LOCATION, params)
+    r = requests.get(URL_POSITION, params)
     data = r.json()
     try:
-        if data['msgnum'] != 100:
+        msgnum = data['msgnum']
+        if msgnum != 100:
+            if msgnum in event_codes:
+                return event_codes[msgnum]
             return 'Error: %s' % data['msg']
         system_name = data['system']
         allegiance = get_system_allegiance(system_name)
@@ -55,10 +69,13 @@ def get_balance():  # TODO: make graph
         'commanderName': CMDR_NAME,
         'apiKey': EDSM_API_KEY
     }
-    r = requests.get(URL_BALANCE, params)
+    r = requests.get(URL_CREDITS, params)
     data = r.json()
     try:
-        if data['msgnum'] != 100:
+        msgnum = data['msgnum']
+        if msgnum != 100:
+            if msgnum in event_codes:
+                return event_codes[msgnum]
             return 'Error: %s' % data['msg']
         credits_ = data['credits'][0]
         balance = credits_['balance']

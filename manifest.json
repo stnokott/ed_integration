@@ -1,6 +1,6 @@
 {
   "domain": "ed_cmdr",
-  "name": "Elite Dangerous Cmdr",
+  "name": "Elite Dangerous Cmdr Tracker",
   "documentation": "https://github.com/stnokott/ed_integration/wiki",
   "issue_tracker": "https://github.com/stnokott/ed_integration/issues",
   "dependencies": [],
