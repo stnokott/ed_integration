@@ -1,5 +1,6 @@
 import sqlite3 as sql
 import os
+from math import sqrt, pow
 
 from typing import List, Tuple
 
@@ -48,6 +49,11 @@ class Database:
     def __init__(self):
         self.__conn = sql.connect(DB_FILEPATH)
         print('Connected to database.')
+
+        # Register custom functions
+        self.__conn.create_function('sqrt', 1, sqrt)
+        self.__conn.create_function('pow', 2, pow)
+        print('Registered custom functions.')
 
         with open(SQL_UPDATE_SYSTEM_FILEPATH) as insert_station_sql_file:
             self.__update_station_sql_str = insert_station_sql_file.read()
@@ -109,6 +115,23 @@ class Database:
         query = self.__conn.execute(select_sql_str, [name])
         result = query.fetchone()
         return System(*result)
+
+    def get_closest_allied_system(self, id1: int, power: str):
+        calc_sql_str = ("WITH distances AS ("
+                        "   SELECT b.id as id,"
+                        "          b.name,    "
+                        "          sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2) + pow(b.z - a.z, 2)) as distance "
+                        "   FROM (SELECT x, y, z"
+                        "         FROM SYSTEMS"
+                        "        WHERE id = ?) a"
+                        "   JOIN (SELECT x, y, z, id, name"
+                        "        FROM SYSTEMS"
+                        "        WHERE id != ? AND power = ? AND power_state = 'Control') b"
+                        ")"
+                        "SELECT id, min(distance) FROM distances")
+        query = self.__conn.execute(calc_sql_str, [id1, id1, power])
+        result = query.fetchone()
+        return self.get_system_by_id(result[0])
 
     def __del__(self):
         self.__conn.close()

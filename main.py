@@ -156,7 +156,7 @@ def is_systems_json_expired():
 def refresh_json():
     # check if refresh needed
     if not is_systems_json_expired():
-        print('Skipping refresh of non-expired systems db.')
+        print('Skipping refresh of non-expired systems JSON.')
         return
     print('System data expired, redownload needed.')
 
@@ -297,7 +297,5 @@ def get_balance():  # TODO: make graph
 
 
 if __name__ == '__main__':
-    # system = get_last_known_position()
-    # print(system)
-    # print(get_cmdr_power())
     refresh_database()
+    print(db.get_closest_allied_system(1, get_cmdr_power()).name)
