@@ -16,8 +16,6 @@ from db import Database
 
 cwd = os.path.dirname(__file__)
 
-EDSM_API_KEY = "2ead48e5586e056cd566ecce6d692c387f65967b"  # TODO: move to config, check for empty (make None if so)
-INARA_API_KEY = "o2bf28bsd40kwg8sgwks0ok44sgkoso0s444s"
 INARA_APP_NAME = "HAIntegration"
 CMDR_NAME = "Peek-A-Chu"
 URL_SYSTEM = "https://www.edsm.net/api-v1/system"
@@ -45,10 +43,30 @@ class Configuration:
     Contains all configuration, user- and integration-generated.
     """
 
-    __pop_systems_refresh_interval: int = 24
     __edsm_api_key: str = None
     __inara_api_key: str = None
+    __pop_systems_refresh_interval: int = 24
     __pop_systems_last_download: datetime.datetime = None
+
+    def get_edsm_api_key(self):
+        """
+        Getter for the EDSM API key.
+        :return: EDSM API key.
+        """
+        return self.__edsm_api_key
+
+    def set_edsm_api_key(self, inara_api_key: str):
+        self.__edsm_api_key = inara_api_key
+
+    def get_inara_api_key(self):
+        """
+        Getter for the Inara API key.
+        :return: Inara API key.
+        """
+        return self.__inara_api_key
+
+    def set_inara_api_key(self, inara_api_key: str):
+        self.__inara_api_key = inara_api_key
 
     def get_pop_systems_refresh_interval(self):
         """
@@ -79,6 +97,8 @@ class Configuration:
             last_download.isoformat() if last_download is not None else "never"
         )
 
+    edsm_api_key = property(get_edsm_api_key, set_edsm_api_key)
+    inara_api_key = property(get_inara_api_key, set_inara_api_key)
     pop_systems_refresh_interval = property(
         get_pop_systems_refresh_interval, set_pop_systems_refresh_interval
     )
@@ -88,6 +108,8 @@ class Configuration:
 
     __config: configparser.ConfigParser
     __section_user = "CONFIG"
+    __key_edsm_api_key = "edsmapikey"
+    __key_inara_api_key = "inaraapikey"
     __key_pop_systems_interval = "PopSystemsRefreshInterval"
     __section_script = "SCRIPT"
     __key_pop_systems_last_download = "LastDownloadISO8601"
@@ -113,6 +135,21 @@ class Configuration:
             ini_modified = True
             print("Created [%s] section." % self.__section_user)
         config_user = c[self.__section_user]
+
+        # Create or fix <edsm_api_key> if needed
+        if self.__key_edsm_api_key not in config_user:
+            config_user[self.__key_edsm_api_key] = ""
+            ini_modified = True
+            print("Set default value for <%s>" % self.__key_edsm_api_key)
+        value_edsm_api_key = config_user[self.__key_edsm_api_key]
+
+        # Create or fix <inara_api_key> if needed
+        if self.__key_inara_api_key not in config_user:
+            config_user[self.__key_inara_api_key] = ""
+            ini_modified = True
+            print("Set default value for <%s>" % self.__key_inara_api_key)
+        value_inara_api_key = config_user[self.__key_inara_api_key]
+
         # Create or fix <pop_systems_interval> if needed.
         if (
             self.__key_pop_systems_interval not in config_user
@@ -160,6 +197,8 @@ class Configuration:
             self.save()
 
         # set member values
+        self.__inara_api_key = value_inara_api_key
+        self.__edsm_api_key = value_edsm_api_key
         self.__pop_systems_refresh_interval = value_pop_systems_interval
         self.__pop_systems_last_download = value_pop_systems_last_download
 
@@ -182,7 +221,7 @@ def get_last_known_position_sys():
     :return: System instance of last known location
     :rtype: System
     """
-    api_key = EDSM_API_KEY if EDSM_API_KEY != "" else None
+    api_key = config.edsm_api_key if config.edsm_api_key != "" else None
     params = {"commanderName": CMDR_NAME, "apiKey": api_key}
     r = requests.get(URL_POSITION, params)
     data = r.json()
@@ -204,10 +243,10 @@ def get_balance():  # TODO: make graph
     :return: Player balance
     :rtype: int
     """
-    if EDSM_API_KEY is None or EDSM_API_KEY == "":
+    if config.edsm_api_key is None or config.edsm_api_key == "":
         # TODO: error handling with HASS
         return None
-    params = {"commanderName": CMDR_NAME, "apiKey": EDSM_API_KEY}
+    params = {"commanderName": CMDR_NAME, "apiKey": config.edsm_api_key}
     r = requests.get(URL_CREDITS, params)
     data = r.json()
     try:
@@ -323,7 +362,7 @@ def get_cmdr_power_str():
             "appName": INARA_APP_NAME,
             "appVersion": "0.0.1",
             "isDeveloped": False,
-            "APIkey": INARA_API_KEY,
+            "APIkey": config.inara_api_key,
             "commanderName": CMDR_NAME,
         },
         "events": [
