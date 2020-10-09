@@ -88,8 +88,8 @@ class Configuration:
             print('Created [%s] section.' % self.__section_user)
         config_user = c[self.__section_user]
         # create or fix <pop_systems_interval> if needed
-        if self.__key_pop_systems_interval not in config_user or not config_user[
-            self.__key_pop_systems_interval].isnumeric():
+        if (self.__key_pop_systems_interval not in config_user
+                or not config_user[self.__key_pop_systems_interval].isnumeric()):
             config_user[self.__key_pop_systems_interval] = '24'
             ini_modified = True
             print('Set default value for <%s>' % self.__key_pop_systems_interval)
@@ -144,18 +144,62 @@ def api_is_online():
     return r.json()['status'] == 2
 
 
+def get_last_known_position_sys():
+    api_key = EDSM_API_KEY if EDSM_API_KEY != '' else None
+    params = {
+        'commanderName': CMDR_NAME,
+        'apiKey': api_key
+    }
+    r = requests.get(URL_POSITION, params)
+    data = r.json()
+    try:
+        msgnum = data['msgnum']
+        if msgnum != 100:
+            if msgnum in event_codes_edsm:
+                return event_codes_edsm[msgnum]
+            return 'Error: %s' % data['msg']
+        system_name = data['system']
+        return db.get_system_by_name(system_name)
+    except (KeyError, TypeError):
+        return None
+
+
+def get_balance():  # TODO: make graph
+    if EDSM_API_KEY is None or EDSM_API_KEY == '':
+        return 'API key required'
+    params = {
+        'commanderName': CMDR_NAME,
+        'apiKey': EDSM_API_KEY
+    }
+    r = requests.get(URL_CREDITS, params)
+    data = r.json()
+    try:
+        msgnum = data['msgnum']
+        if msgnum != 100:
+            if msgnum in event_codes_edsm:
+                return event_codes_edsm[msgnum]
+            return 'Error: %s' % data['msg']
+        credits_ = data['credits'][0]
+        balance = credits_['balance']
+        loan = credits_['loan']
+        total = balance - loan
+        return '%s Cr' % f'{total:n}'
+    except (KeyError, TypeError):
+        return 'Unknown error'
+
+
 def is_systems_json_expired():
     last_download_time = config.pop_systems_last_download
     if last_download_time is None or not os.path.isfile(POP_SYSTEMS_JSON_FILEPATH):
         return True
     now_time = datetime.datetime.now()
     time_delta = now_time - last_download_time
-    return not (int(time_delta.seconds / 60 / 60) < config.pop_systems_refresh_interval)
+    return not (int(time_delta.total_seconds() / 60 / 60) < config.pop_systems_refresh_interval)
 
 
-def refresh_json():
+def refresh_system_data(reset: bool = False):
     # check if refresh needed
-    if not is_systems_json_expired():
+    if not reset and not is_systems_json_expired():
         print('Skipping refresh of non-expired systems JSON.')
         return
     print('System data expired, redownload needed.')
@@ -177,10 +221,6 @@ def refresh_json():
     config.pop_systems_last_download = datetime.datetime.now()
     config.save()
 
-
-def refresh_database(reset: bool = False):
-    refresh_json()
-
     if reset:
         db.reset()
 
@@ -200,10 +240,10 @@ def refresh_database(reset: bool = False):
             db.add_systems(systems_list)
     except sqlite3.Error:
         print('Error while updating systems table.')
-        refresh_database(True)
+        refresh_system_data(True)
 
 
-def get_cmdr_power():
+def get_cmdr_power_str():
     payload = {
         'header': {
             'appName': INARA_APP_NAME,
@@ -234,68 +274,13 @@ def get_cmdr_power():
         return None
 
 
-def get_system_allegiance(system_name: str):
-    params = {
-        'systemName': system_name,
-        'showInformation': 1
-    }
-    r = requests.get(URL_SYSTEM, params)
-    try:
-        information = r.json()['information']
-        if 'allegiance' not in information:
-            return 'Independent'
-        return information['allegiance']
-    except (KeyError, TypeError):
+def get_closest_allied_system_str():
+    refresh_system_data()
+    power = get_cmdr_power_str()
+    if power is None or power == '':
         return None
-
-
-def get_last_known_position(include_allegiance: bool = False):
-    api_key = EDSM_API_KEY if EDSM_API_KEY != '' else None
-    params = {
-        'commanderName': CMDR_NAME,
-        'apiKey': api_key
-    }
-    r = requests.get(URL_POSITION, params)
-    data = r.json()
-    try:
-        msgnum = data['msgnum']
-        if msgnum != 100:
-            if msgnum in event_codes_edsm:
-                return event_codes_edsm[msgnum]
-            return 'Error: %s' % data['msg']
-        system_name = data['system']
-        allegiance = get_system_allegiance(system_name)
-        if allegiance is None or not include_allegiance:
-            return system_name
-        return '%s (%s)' % (system_name, allegiance)
-    except (KeyError, TypeError):
-        return 'Unknown Error'
-
-
-def get_balance():  # TODO: make graph
-    if EDSM_API_KEY is None or EDSM_API_KEY == '':
-        return 'API key required'
-    params = {
-        'commanderName': CMDR_NAME,
-        'apiKey': EDSM_API_KEY
-    }
-    r = requests.get(URL_CREDITS, params)
-    data = r.json()
-    try:
-        msgnum = data['msgnum']
-        if msgnum != 100:
-            if msgnum in event_codes_edsm:
-                return event_codes_edsm[msgnum]
-            return 'Error: %s' % data['msg']
-        credits_ = data['credits'][0]
-        balance = credits_['balance']
-        loan = credits_['loan']
-        total = balance - loan
-        return '%s Cr' % f'{total:n}'
-    except (KeyError, TypeError):
-        return 'Unknown error'
+    return db.get_closest_allied_system(get_last_known_position_sys().sid, get_cmdr_power_str()).name
 
 
 if __name__ == '__main__':
-    refresh_database()
-    print(db.get_closest_allied_system(1, get_cmdr_power()).name)
+    print(get_closest_allied_system_str())
