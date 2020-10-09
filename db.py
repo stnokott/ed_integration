@@ -91,10 +91,10 @@ class Database:
 
     def add_systems(self, systems: List[Tuple[int, int, str, float, float, float, int, bool, int, str, int, str, int,
                                               str, int, str, str, str, int, bool, int, int, str, int, str]]):
-        print('Adding %i system rows...' % len(systems))
+        print('Adding %i system rows...' % len(systems), end='')
         self.__conn.executemany(self.__update_station_sql_str, systems)
         self.__conn.commit()
-        print('Done.')
+        print(' Done.')
 
     def get_system_by_id(self, sid: int):
         select_sql_str = ("SELECT id, edsm_id, name, x, y, z, population, is_populated, government_id, government, "
