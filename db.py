@@ -1,8 +1,8 @@
 """Provides system database related functions"""
-import sqlite3 as sql
+import logging
 import os
-from math import sqrt, pow
-
+import sqlite3 as sql
+from math import pow, sqrt
 from typing import List, Tuple
 
 cwd = os.path.dirname(__file__)
@@ -79,12 +79,12 @@ class Database:
 
     def __init__(self):
         self.__conn = sql.connect(DB_FILEPATH)
-        print("Connected to database.")
+        logging.debug("Connected to database.")
 
         # Register custom functions
         self.__conn.create_function("sqrt", 1, sqrt)
         self.__conn.create_function("pow", 2, pow)
-        print("Registered custom functions.")
+        logging.debug("Registered custom functions.")
 
         with open(SQL_UPDATE_SYSTEM_FILEPATH) as insert_station_sql_file:
             self.__update_station_sql_str = insert_station_sql_file.read()
@@ -92,7 +92,7 @@ class Database:
             self.__get_db_tables_sql_str = get_db_tables_sql_file.read()
         with open(SQL_RESET_DB_FILEPATH) as reset_db_file:
             self.__reset_db_sql_str = reset_db_file.read()
-        print("Retrieved prefab sql scripts.")
+        logging.debug("Retrieved prefab sql scripts.")
 
         query = self.__conn.execute(self.__get_db_tables_sql_str)
         if "SYSTEMS" not in (t[0] for t in query.fetchall()):
@@ -102,7 +102,7 @@ class Database:
         """
         Drops and recreates all database tables, dropping all data (!).
         """
-        print("Resetting database...")
+        logging.debug("Resetting database...")
         self.__conn.executescript(self.__reset_db_sql_str)
         self.__conn.commit()
 
@@ -230,10 +230,9 @@ class Database:
         Add multiple systems in one database commit.
         :param systems: list of tuple as described in add_system
         """
-        print("Adding %i system rows..." % len(systems), end="")
+        logging.debug("Adding %i system rows...", len(systems))
         self.__conn.executemany(self.__update_station_sql_str, systems)
         self.__conn.commit()
-        print(" Done.")
 
     def get_system_by_id(self, sid: int):
         """
@@ -298,4 +297,4 @@ class Database:
 
     def __del__(self):
         self.__conn.close()
-        print("Connection to database closed.")
+        logging.debug("Connection to database closed.")

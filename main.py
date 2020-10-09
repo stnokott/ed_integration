@@ -1,16 +1,17 @@
 """Main file doing all the heavy lifting."""
-import os
-import requests
-import urllib.request
-import urllib.parse
-import shutil
-import locale
-import json
-import datetime
 import configparser
+import datetime
+import json
+import locale
+import logging
+import os
+import shutil
+import sqlite3
+import urllib.parse
+import urllib.request
 
 import ijson
-import sqlite3
+import requests
 
 from db import Database
 
@@ -26,7 +27,7 @@ URL_EDDB_POP_SYSTEMS_JSON = "https://eddb.io/archive/v6/systems_populated.json"
 POP_SYSTEMS_JSON_FILEPATH = os.path.join(cwd, "populated_systems.json")
 INI_FILEPATH = os.path.join(cwd, "app.ini")
 
-locale.setlocale(locale.LC_ALL, "")
+locale.setlocale(locale.LC_ALL, "")  # auto locale for thousands delimiter
 
 event_codes_edsm = {
     201: "Commander name not found",
@@ -120,34 +121,34 @@ class Configuration:
         c = configparser.ConfigParser()
         if not os.path.isfile(INI_FILEPATH):
             open(INI_FILEPATH, "a").close()
-            print("INI file absent, file created.")
+            logging.debug("INI file absent, file created.")
 
         try:
             c.read(INI_FILEPATH)
-        except configparser.MissingSectionHeaderError:
+        except configparser.MissingSectionHeaderError as e:
             open(INI_FILEPATH, "w").close()
-            print("INI file corrupted, contents reset.")
+            logging.debug("INI file corrupted, contents reset.", exc_info=e)
 
         # USER #
         # Create user section if needed.
         if self.__section_user not in c:
             c[self.__section_user] = {}
             ini_modified = True
-            print("Created [%s] section." % self.__section_user)
+            logging.debug("Created [%s] section." % self.__section_user)
         config_user = c[self.__section_user]
 
         # Create or fix <edsm_api_key> if needed
         if self.__key_edsm_api_key not in config_user:
             config_user[self.__key_edsm_api_key] = ""
             ini_modified = True
-            print("Set default value for <%s>" % self.__key_edsm_api_key)
+            logging.debug("Set default value for <%s>" % self.__key_edsm_api_key)
         value_edsm_api_key = config_user[self.__key_edsm_api_key]
 
         # Create or fix <inara_api_key> if needed
         if self.__key_inara_api_key not in config_user:
             config_user[self.__key_inara_api_key] = ""
             ini_modified = True
-            print("Set default value for <%s>" % self.__key_inara_api_key)
+            logging.debug("Set default value for <%s>" % self.__key_inara_api_key)
         value_inara_api_key = config_user[self.__key_inara_api_key]
 
         # Create or fix <pop_systems_interval> if needed.
@@ -157,7 +158,9 @@ class Configuration:
         ):
             config_user[self.__key_pop_systems_interval] = "24"
             ini_modified = True
-            print("Set default value for <%s>" % self.__key_pop_systems_interval)
+            logging.debug(
+                "Set default value for <%s>" % self.__key_pop_systems_interval
+            )
         value_pop_systems_interval = int(config_user[self.__key_pop_systems_interval])
 
         # SCRIPT #
@@ -165,27 +168,31 @@ class Configuration:
         if self.__section_script not in c:
             c[self.__section_script] = {}
             ini_modified = True
-            print("Created [%s] section." % self.__section_script)
+            logging.debug("Created [%s] section." % self.__section_script)
         config_script = c[self.__section_script]
         # Create <pop_systems_last_download> if needed.
         if self.__key_pop_systems_last_download not in config_script:
             config_script[self.__key_pop_systems_last_download] = "never"
             ini_modified = True
-            print("Set default value for <%s>" % self.__key_pop_systems_last_download)
+            logging.debug(
+                "Set default value for <%s>" % self.__key_pop_systems_last_download
+            )
         try:
             value_pop_systems_last_download = datetime.datetime.fromisoformat(
                 config_script[self.__key_pop_systems_last_download]
             )
-        except ValueError:
+        except ValueError as e:
             # Fix <pop_systems_last_download> if needed.
             if config_script[self.__key_pop_systems_last_download] != "never":
-                print(
-                    "Set default value for <%s>" % self.__key_pop_systems_last_download
+                logging.debug(
+                    "Set default value for <%s>" % self.__key_pop_systems_last_download,
+                    exc_info=e,
                 )
             else:
-                print(
+                logging.debug(
                     "Invalid value for <%s>, setting to default value."
-                    % self.__key_pop_systems_last_download
+                    % self.__key_pop_systems_last_download,
+                    exc_info=e,
                 )
             config_script[self.__key_pop_systems_last_download] = "never"
             value_pop_systems_last_download = None
@@ -208,7 +215,7 @@ class Configuration:
         """
         with open(INI_FILEPATH, "w") as config_file:
             self.__config.write(config_file)
-            print("INI file changes saved.")
+            logging.debug("INI file changes saved.")
 
 
 config = Configuration()
@@ -230,7 +237,7 @@ def get_last_known_position_sys():
         if msgnum != 100:
             if msgnum in event_codes_edsm:
                 return event_codes_edsm[msgnum]
-            return "Error: %s" % data["msg"]
+            return f"Error: {data['msg']}"
         system_name = data["system"]
         return db.get_system_by_name(system_name)
     except (KeyError, TypeError):
@@ -254,12 +261,12 @@ def get_balance():  # TODO: make graph
         if msgnum != 100:
             if msgnum in event_codes_edsm:
                 return event_codes_edsm[msgnum]
-            return "Error: %s" % data["msg"]
+            return f"Error: {data['msg']}"
         credits_ = data["credits"][0]
         balance = credits_["balance"]
         loan = credits_["loan"]
         total = balance - loan
-        return "%s Cr" % f"{total:n}"
+        return f"{f'{total:n}'} Cr"
     except (KeyError, TypeError):
         return None
 
@@ -287,23 +294,20 @@ def refresh_system_data(reset: bool = False):
     """
     # check if refresh needed
     if not reset and not is_systems_json_expired():
-        print("Skipping refresh of non-expired systems JSON.")
+        logging.debug("Skipping refresh of non-expired systems JSON.")
         return
-    print("System data expired, redownload needed.")
+    logging.debug("System data expired, redownload needed.")
 
     params = {"Accept-Encoding": "gzip, deflate, sdch"}
     data = urllib.parse.urlencode(params)
     data = data.encode("ascii")
-    print("Getting input stream for %s..." % URL_EDDB_POP_SYSTEMS_JSON, end="")
     with urllib.request.urlopen(URL_EDDB_POP_SYSTEMS_JSON, data) as response, open(
         POP_SYSTEMS_JSON_FILEPATH, "wb"
     ) as out_file:
-        print(" Done.")
-        print("Writing to %s..." % POP_SYSTEMS_JSON_FILEPATH, end="")
+        logging.debug("Writing to %s..." % POP_SYSTEMS_JSON_FILEPATH)
         shutil.copyfileobj(response, out_file)
-        print(" Done.")
 
-    print("Updating config for last_download...")
+    logging.debug("Updating config for last_download...")
     config.pop_systems_last_download = datetime.datetime.now()
     config.save()
 
@@ -346,8 +350,11 @@ def refresh_system_data(reset: bool = False):
                     )
                 )
             db.add_systems(systems_list)
-    except sqlite3.Error:
-        print("Error while updating systems table.")
+    except sqlite3.Error as e:
+        logging.warning(
+            "Error while updating systems table, trying to rebuild database.",
+            exc_info=e,
+        )
         refresh_system_data(True)
 
 
@@ -403,6 +410,6 @@ if __name__ == "__main__":
     refresh_system_data()
     system = get_closest_allied_system()
     if system is not None:
-        print(system.name)
+        logging.debug(system.name)
     else:
-        print("n/a")
+        logging.debug("n/a")
