@@ -60,7 +60,7 @@ class EDFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema[vol.Optional(KEY_POP_SYSTEMS_REFRESH_INTERVAL, default=24)] = int
 
         return self.async_show_form(
-            step_id="init",
+            step_id="user",
             data_schema=vol.Schema(data_schema),
             errors=self._errors,
         )

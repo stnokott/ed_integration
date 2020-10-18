@@ -2,7 +2,7 @@
     "config": {
         "title": "Elite Dangerous CMDR information",
         "step": {
-            "init": {
+            "user": {
                 "title": "E:D Integration Setup",
                 "description": "Please insert API keys needed for this integration.",
                 "data": {
@@ -15,17 +15,6 @@
         },
         "error": {
             "pop_systems_refresh_interval": "Needs to be a whole number greater than 0."
-        }
-    },
-    "options": {
-        "step": {
-            "user": {
-                "data": {
-                    "binary_sensor": "Binary sensor enabled",
-                    "sensor": "Sensor enabled",
-                    "switch": "Switch enabled"
-                }
-            }
         }
     }
 }
