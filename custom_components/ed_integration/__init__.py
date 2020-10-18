@@ -44,7 +44,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     cmdr_name = entry.data.get(KEY_CMDR_NAME)
     edsm_api_key = entry.data.get(KEY_EDSM_API_KEY)
     inara_api_key = entry.data.get(KEY_INARA_API_KEY)
-    pop_systems_refresh_interval = entry.data.get(KEY_POP_SYSTEMS_REFRESH_INTERVAL)
+    pop_systems_refresh_interval = \
+        entry.data.get(KEY_POP_SYSTEMS_REFRESH_INTERVAL) \
+        if KEY_POP_SYSTEMS_REFRESH_INTERVAL in entry.data.keys() \
+        else 24
 
     coordinator = EDDataUpdateCoordinator(
         hass, cmdr_name, edsm_api_key, inara_api_key, pop_systems_refresh_interval
@@ -59,7 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     for platform in PLATFORMS:
         if entry.options.get(platform, True):
             coordinator.platforms.append(platform)
-            hass.async_add_job(
+            await hass.async_add_job(
                 hass.config_entries.async_forward_entry_setup(entry, platform)
             )
 
