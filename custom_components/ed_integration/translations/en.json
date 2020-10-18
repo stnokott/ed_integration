@@ -2,14 +2,6 @@
     "config": {
         "title": "Elite Dangerous CMDR information",
         "step": {
-            "user": {
-                "title": "Blueprint",
-                "description": "If you need help with the configuration have a look here: https://github.com/custom-components/blueprint",
-                "data": {
-                    "username": "Username",
-                    "password": "Password"
-                }
-            },
             "init": {
                 "title": "E:D Integration Setup",
                 "description": "Please insert API keys needed for this integration.",
