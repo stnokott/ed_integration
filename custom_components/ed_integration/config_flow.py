@@ -30,8 +30,12 @@ class EDFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="single_instance_allowed")
 
         if user_input is not None:
+            if KEY_POP_SYSTEMS_REFRESH_INTERVAL not in user_input:
+                user_input[KEY_POP_SYSTEMS_REFRESH_INTERVAL] = 24
+
             if user_input[KEY_POP_SYSTEMS_REFRESH_INTERVAL] <= 0:
                 self._errors[KEY_POP_SYSTEMS_REFRESH_INTERVAL] = "invalid_value_error"
+
             else:
                 # TODO: test valid
                 return self.async_create_entry(
