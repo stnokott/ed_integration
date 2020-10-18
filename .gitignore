@@ -1,4 +1,1 @@
-.idea
-app.ini
-database.db
-populated_systems.json
+__pycache__

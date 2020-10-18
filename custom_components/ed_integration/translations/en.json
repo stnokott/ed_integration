@@ -1,0 +1,38 @@
+{
+    "config": {
+        "title": "Elite Dangerous CMDR information",
+        "step": {
+            "user": {
+                "title": "Blueprint",
+                "description": "If you need help with the configuration have a look here: https://github.com/custom-components/blueprint",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                }
+            },
+            "init": {
+                "title": "E:D Integration Setup",
+                "description": "Please insert API keys needed for this integration.",
+                "data": {
+                    "edsm_api_key": "EDSM API key (https://www.edsm.net/en/settings/api)",
+                    "inara_api_key": "Inara API key (https://inara.cz/settings-api/)",
+                    "pop_systems_refresh_interval": "Invalidation time for local system database"
+                }
+            }
+        },
+        "error": {
+            "pop_systems_refresh_interval": "Needs to be a whole number greater than 0."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "data": {
+                    "binary_sensor": "Binary sensor enabled",
+                    "sensor": "Sensor enabled",
+                    "switch": "Switch enabled"
+                }
+            }
+        }
+    }
+}

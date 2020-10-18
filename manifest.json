@@ -3,9 +3,10 @@
   "name": "Elite Dangerous Cmdr Tracker",
   "documentation": "https://github.com/stnokott/ed_integration/wiki",
   "issue_tracker": "https://github.com/stnokott/ed_integration/issues",
-  "dependencies": [],
-  "after_dependencies": ["http"],
+  "dependencies": ["http"],
+  "after_dependencies": [],
   "codeowners": ["@stnokott"],
-  "requirements": ["requests==2.24.0"],
-  "quality_scale": "silver"
+  "requirements": ["requests==2.24.0, urllib3==1.25.10, ijson==3.1.2"],
+  "quality_scale": "silver",
+  "config_flow": false
 }
