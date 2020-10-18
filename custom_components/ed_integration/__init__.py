@@ -15,15 +15,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from custom_components.ed_integration.const import (
     DOMAIN,
-    PLATFORMS,
-    STARTUP_MESSAGE,
     KEY_CMDR_NAME,
     KEY_EDSM_API_KEY,
     KEY_INARA_API_KEY,
     KEY_POP_SYSTEMS_REFRESH_INTERVAL,
+    PLATFORMS,
+    STARTUP_MESSAGE,
 )
 
-from .client import (Configuration, Client)
+from .client import Client, Configuration
 
 SCAN_INTERVAL = timedelta(seconds=30)
 

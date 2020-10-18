@@ -1,9 +1,9 @@
 """Provides system database related functions"""
 import asyncio
 import logging
+from math import pow, sqrt
 import os
 import sqlite3 as sql
-from math import pow, sqrt
 from typing import List, Tuple
 
 cwd = os.path.dirname(__file__)
