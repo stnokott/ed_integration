@@ -14,6 +14,7 @@
                 "title": "E:D Integration Setup",
                 "description": "Please insert API keys needed for this integration.",
                 "data": {
+                    "cmdr_name": "CMDR name (in-game)",
                     "edsm_api_key": "EDSM API key (https://www.edsm.net/en/settings/api)",
                     "inara_api_key": "Inara API key (https://inara.cz/settings-api/)",
                     "pop_systems_refresh_interval": "Invalidation time for local system database"
