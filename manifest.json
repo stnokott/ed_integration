@@ -8,5 +8,5 @@
   "codeowners": ["@stnokott"],
   "requirements": ["requests==2.24.0, urllib3==1.25.10, ijson==3.1.2"],
   "quality_scale": "silver",
-  "config_flow": false
+  "config_flow": true
 }
