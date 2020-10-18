@@ -1,4 +1,5 @@
 """Adds config flow for Blueprint."""
+from collections import OrderedDict
 from homeassistant import config_entries
 from homeassistant.core import callback
 import voluptuous as vol
@@ -35,14 +36,7 @@ class EDFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 # TODO: test valid
                 return self.async_create_entry(
                     title="Elite Dangerous Configuration",
-                    data={
-                        KEY_CMDR_NAME: user_input[KEY_CMDR_NAME],
-                        KEY_EDSM_API_KEY: user_input[KEY_EDSM_API_KEY],
-                        KEY_INARA_API_KEY: user_input[KEY_INARA_API_KEY],
-                        KEY_POP_SYSTEMS_REFRESH_INTERVAL: user_input[
-                            KEY_POP_SYSTEMS_REFRESH_INTERVAL
-                        ],
-                    },
+                    data=user_input
                 )
             return await self._show_config_form(user_input)
 
@@ -55,20 +49,19 @@ class EDFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     #     return EDOptionsFlowHandler(config_entry)
 
     async def _show_config_form(self, user_input):
-        """Show the configuration form to edit location data."""
+        """Show the configuration form to edit configuration data."""
 
-        data_schema = {
-            vol.Required(KEY_CMDR_NAME): str,
-            vol.Required(KEY_EDSM_API_KEY): str,
-            vol.Required(KEY_INARA_API_KEY): str,
-        }
+        data_schema = OrderedDict()
+        data_schema[vol.Required(KEY_CMDR_NAME, default="")] = str
+        data_schema[vol.Required(KEY_EDSM_API_KEY, default="", )] = str
+        data_schema[vol.Required(KEY_INARA_API_KEY, default="")] = str
 
         if self.show_advanced_options:
-            data_schema[vol.Required(KEY_POP_SYSTEMS_REFRESH_INTERVAL, default=24)]: int
+            data_schema[vol.Optional(KEY_POP_SYSTEMS_REFRESH_INTERVAL, default=24)] = int
 
         return self.async_show_form(
             step_id="init",
-            data_schema=data_schema,
+            data_schema=vol.Schema(data_schema),
             errors=self._errors,
         )
 
