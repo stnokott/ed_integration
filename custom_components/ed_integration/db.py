@@ -1,4 +1,5 @@
 """Provides system database related functions"""
+import asyncio
 import logging
 import os
 import sqlite3 as sql
@@ -77,14 +78,15 @@ class Database:
     Represents a database of populated E:D systems and provides useful functions to retrieve data from it.
     """
 
-    def __init__(self):
+    def __init__(self, logger: logging.Logger):
         self.__conn = sql.connect(DB_FILEPATH)
-        logging.debug("Connected to database.")
+        self._logger = logger
+        self._logger.debug("Connected to database.")
 
         # Register custom functions
         self.__conn.create_function("sqrt", 1, sqrt)
         self.__conn.create_function("pow", 2, pow)
-        logging.debug("Registered custom functions.")
+        self._logger.debug("Registered custom functions.")
 
         with open(SQL_UPDATE_SYSTEM_FILEPATH) as insert_station_sql_file:
             self.__update_station_sql_str = insert_station_sql_file.read()
@@ -92,21 +94,21 @@ class Database:
             self.__get_db_tables_sql_str = get_db_tables_sql_file.read()
         with open(SQL_RESET_DB_FILEPATH) as reset_db_file:
             self.__reset_db_sql_str = reset_db_file.read()
-        logging.debug("Retrieved prefab sql scripts.")
+        self._logger.debug("Retrieved prefab sql scripts.")
 
         query = self.__conn.execute(self.__get_db_tables_sql_str)
         if "SYSTEMS" not in (t[0] for t in query.fetchall()):
-            self.reset()
+            asyncio.run(self.reset())
 
-    def reset(self):
+    async def reset(self):
         """
         Drops and recreates all database tables, dropping all data (!).
         """
-        logging.debug("Resetting database...")
+        self._logger.debug("Resetting database...")
         self.__conn.executescript(self.__reset_db_sql_str)
         self.__conn.commit()
 
-    def add_system(
+    async def add_system(
         self,
         sid: int,
         edsm_id: int,
@@ -194,7 +196,7 @@ class Database:
         )
         self.__conn.commit()
 
-    def add_systems(
+    async def add_systems(
         self,
         systems: List[
             Tuple[
@@ -230,11 +232,11 @@ class Database:
         Add multiple systems in one database commit.
         :param systems: list of tuple as described in add_system
         """
-        logging.debug("Adding %i system rows...", len(systems))
+        self._logger.debug("Adding %i system rows...", len(systems))
         self.__conn.executemany(self.__update_station_sql_str, systems)
         self.__conn.commit()
 
-    def get_system_by_id(self, sid: int):
+    async def get_system_by_id(self, sid: int):
         """
         Gets System instance from database by its ID
         :param sid: seeked system ID
@@ -251,7 +253,7 @@ class Database:
         result = query.fetchone()
         return System(*result)
 
-    def get_system_by_name(self, name: str):
+    async def get_system_by_name(self, name: str):
         """
         Gets System instance from database by its name
         :param name: seeked system name
@@ -268,7 +270,7 @@ class Database:
         result = query.fetchone()
         return System(*result)
 
-    def get_closest_allied_system(self, id1: int, power: str):
+    async def get_closest_allied_system(self, id1: int, power: str):
         """
         Gets closest system in 3D space that is under control by the specified powerplay faction.
         :param id1: EDDB ID of reference system
@@ -293,8 +295,8 @@ class Database:
         )
         query = self.__conn.execute(calc_sql_str, [id1, id1, power])
         result = query.fetchone()
-        return self.get_system_by_id(result[0])
+        return await self.get_system_by_id(result[0])
 
     def __del__(self):
         self.__conn.close()
-        logging.debug("Connection to database closed.")
+        self._logger.debug("Connection to database closed.")
