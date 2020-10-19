@@ -52,6 +52,16 @@ class Configuration:
     __pop_systems_refresh_interval: int = 24
     __pop_systems_last_download: datetime.datetime = None
 
+    def __init__(
+        self, cmdr_name: str, edsm_api_key: str, inara_api_key: str, pop_systems_refresh_interval: int = None
+    ):
+        # set member values
+        self.__cmdr_name = cmdr_name
+        self.__inara_api_key = edsm_api_key
+        self.__edsm_api_key = inara_api_key
+        self.__pop_systems_refresh_interval = pop_systems_refresh_interval or 24
+        self.__pop_systems_last_download = None
+
     def get_cmdr_name(self):
         return self.__cmdr_name
 
@@ -110,16 +120,6 @@ class Configuration:
     pop_systems_last_download = property(
         get_pop_systems_last_download, set_pop_systems_last_download
     )
-
-    def __init__(
-        self, cmdr_name: str, edsm_api_key: str, inara_api_key: str, pop_systems_refresh_interval: int = None
-    ):
-        # set member values
-        self.__cmdr_name = cmdr_name
-        self.__inara_api_key = edsm_api_key
-        self.__edsm_api_key = inara_api_key
-        self.__pop_systems_refresh_interval = pop_systems_refresh_interval or 24
-        self.__pop_systems_last_download = None
 
 
 class Client:
