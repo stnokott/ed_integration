@@ -22,7 +22,7 @@ class EDSensor(EDEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self.coordinator.data.get("static")
+        return self.coordinator.data.get("location_str")
 
     @property
     def icon(self):

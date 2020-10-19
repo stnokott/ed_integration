@@ -19,7 +19,6 @@ ICON = "mdi:format-quote-close"
 # Device classes
 BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 
-
 # Configuration and options
 CONF_ENABLED = "enabled"
 

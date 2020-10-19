@@ -12,7 +12,7 @@ import urllib.request
 import ijson
 import requests
 
-from .db import Database
+from .db import Database, System
 
 cwd = os.path.dirname(__file__)
 
@@ -135,13 +135,14 @@ class Client:
             "cmdr_name": self._config.cmdr_name,
             "data": {
                 "time": datetime.time(),
-                "static": "Some sample static text.",
+                "static": f"Providing data for CMDR {self._config.cmdr_name}.",
+                "location_str": (await self.get_last_known_position_sys()).name,
                 "none": None,
             },
         }
         return data
 
-    async def get_last_known_position_sys(self):
+    async def get_last_known_position_sys(self) -> System:
         """
         Gets an instance of System representing the last known location of the corresponding player from EDSM.
         :return: System instance of last known location
@@ -155,14 +156,16 @@ class Client:
             msgnum = data["msgnum"]
             if msgnum != 100:
                 if msgnum in event_codes_edsm:
-                    return event_codes_edsm[msgnum]
-                return f"Error: {data['msg']}"
+                    _LOGGER.warning(f"Unsuccessful EDSM request: {event_codes_edsm[msgnum]}")
+                    return System.NA_SYSTEM
+                _LOGGER.warning(f"Unsuccessful EDSM request, undefined response event code: {data['msg']}")
+                return System.NA_SYSTEM
             system_name = data["system"]
             return await self._db.get_system_by_name(system_name)
         except (KeyError, TypeError):
-            return None
+            return System.NA_SYSTEM
 
-    async def get_balance(self):  # TODO: make graph
+    async def get_balance_str(self) -> str:  # TODO: make graph
         """
         Gets current player balance from EDSM.
         :return: Player balance
@@ -170,7 +173,7 @@ class Client:
         """
         if self._config.edsm_api_key is None or self._config.edsm_api_key == "":
             # TODO: error handling with HASS
-            return None
+            return 'No API key provided'
         params = {"commanderName": CMDR_NAME, "apiKey": self._config.edsm_api_key}
         r = requests.get(URL_CREDITS, params)
         data = r.json()
@@ -185,10 +188,10 @@ class Client:
             loan = credits_["loan"]
             total = balance - loan
             return f"{f'{total:n}'} Cr"
-        except (KeyError, TypeError):
-            return None
+        except (KeyError, TypeError) as e:
+            return f"Unknown error occured: {e}"
 
-    async def is_systems_json_expired(self):
+    async def is_systems_json_expired(self) -> bool:
         """
         Check in accordance to user settings and last refresh if the systems database needs to be refreshed from EDDB.
         :return: Boolean if data is expired
@@ -204,7 +207,7 @@ class Client:
             < self._config.pop_systems_refresh_interval
         )
 
-    async def refresh_system_data(self, reset: bool = False):
+    async def refresh_system_data(self, reset: bool = False) -> None:
         """
         Redownloads system data and refreshes database if needed.
         :param reset: force refresh, ignoring user refresh interval settings
@@ -274,7 +277,7 @@ class Client:
             # TODO: param with retry count, fail after n retries
             await self.refresh_system_data(True)
 
-    async def get_cmdr_power_str(self):
+    async def get_cmdr_power_str(self) -> str:
         """
         Gets powerplay faction of player, if known, as string.
         :return: Powerplay faction string, if any
@@ -301,14 +304,14 @@ class Client:
             header = r.json()["header"]
             if header["eventStatus"] != 200:
                 _LOGGER.error(f"Inara API error: {header['eventStatusText']}")
-                return None
+                return f"Inara API error: {header['eventStatusText']}"
             event_data = r.json()["events"][0]["eventData"]
             power_name = event_data["preferredPowerName"]
             return power_name if power_name and power_name != "" else None
-        except (KeyError, TypeError):
-            return None
+        except (KeyError, TypeError) as e:
+            return f"Unknown error occured: {e}"
 
-    async def get_closest_allied_system(self):
+    async def get_closest_allied_system(self) -> System:
         """
         Get closest system to the player that is controlled by the player's powerplay faction.
         :return: closest allied system
@@ -317,7 +320,7 @@ class Client:
         await self.refresh_system_data()
         power = await self.get_cmdr_power_str()
         if power is None or power == "":
-            return None
+            return System.NA_SYSTEM
         last_known_position_sys = await self.get_last_known_position_sys()
         return await self._db.get_closest_allied_system(
             last_known_position_sys.sid,
