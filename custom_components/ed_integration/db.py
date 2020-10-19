@@ -97,9 +97,9 @@ class Database:
 
         query = self.__conn.execute(self.__get_db_tables_sql_str)
         if "SYSTEMS" not in (t[0] for t in query.fetchall()):
-            await self.reset()
+            self.reset()
 
-    async def reset(self):
+    def reset(self):
         """
         Drops and recreates all database tables, dropping all data (!).
         """

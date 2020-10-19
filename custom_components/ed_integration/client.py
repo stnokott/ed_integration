@@ -228,7 +228,7 @@ class Client:
         self._config.pop_systems_last_download = datetime.datetime.now()
 
         if reset:
-            await self._db.reset()
+            self._db.reset()
 
         # Push changes to database
         try:
