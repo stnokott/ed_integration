@@ -18,32 +18,32 @@ class System:
     """
 
     def __init__(
-        self,
-        sid: int,
-        edsm_id: int,
-        name: str,
-        x: float,
-        y: float,
-        z: float,
-        population: int,
-        is_populated: bool,
-        government_id: int,
-        government: str,
-        allegiance_id: int,
-        allegiance: str,
-        security_id: int,
-        security: str,
-        primary_economy_id: int,
-        primary_economy: str,
-        power: str,
-        power_state: str,
-        power_state_id: int,
-        needs_permit: bool,
-        updated_at: int,
-        controlling_minor_faction_id: int,
-        controlling_minor_faction: str,
-        reserve_type_id: int,
-        reserve_type: str,
+            self,
+            sid: int,
+            edsm_id: int,
+            name: str,
+            x: float,
+            y: float,
+            z: float,
+            population: int,
+            is_populated: bool,
+            government_id: int,
+            government: str,
+            allegiance_id: int,
+            allegiance: str,
+            security_id: int,
+            security: str,
+            primary_economy_id: int,
+            primary_economy: str,
+            power: str,
+            power_state: str,
+            power_state_id: int,
+            needs_permit: bool,
+            updated_at: int,
+            controlling_minor_faction_id: int,
+            controlling_minor_faction: str,
+            reserve_type_id: int,
+            reserve_type: str,
     ):
         self.sid = sid
         self.edsm_id = edsm_id
@@ -71,10 +71,10 @@ class System:
         self.reserve_type_id = reserve_type_id
         self.reserve_type = reserve_type
 
-    # System representing not available or error state
 
-    NA_SYSTEM = __init__(-1, -1, 'n/a', 0, 0, 0, -1, False, -1, 'n/a', -1, 'n/a', -1, 'n/a', -1, 'n/a', 'n/a', 'n/a',
-                         -1, False, -1, -1, 'n/a', -1, 'n/a')
+# System representing not available or error state
+System.NA_SYSTEM = System(-1, -1, 'n/a', 0, 0, 0, -1, False, -1, 'n/a', -1, 'n/a', -1, 'n/a', -1, 'n/a', 'n/a', 'n/a',
+                          -1, False, -1, -1, 'n/a', -1, 'n/a')
 
 
 class Database:
@@ -113,32 +113,32 @@ class Database:
         self.__conn.commit()
 
     async def add_system(
-        self,
-        sid: int,
-        edsm_id: int,
-        name: str,
-        x: float,
-        y: float,
-        z: float,
-        population: int,
-        is_populated: bool,
-        government_id: int,
-        government: str,
-        allegiance_id: int,
-        allegiance: str,
-        security_id: int,
-        security: str,
-        primary_economy_id: int,
-        primary_economy: str,
-        power: str,
-        power_state: str,
-        power_state_id: int,
-        needs_permit: bool,
-        updated_at: int,
-        controlling_minor_faction_id: int,
-        controlling_minor_faction: str,
-        reserve_type_id: int,
-        reserve_type: str,
+            self,
+            sid: int,
+            edsm_id: int,
+            name: str,
+            x: float,
+            y: float,
+            z: float,
+            population: int,
+            is_populated: bool,
+            government_id: int,
+            government: str,
+            allegiance_id: int,
+            allegiance: str,
+            security_id: int,
+            security: str,
+            primary_economy_id: int,
+            primary_economy: str,
+            power: str,
+            power_state: str,
+            power_state_id: int,
+            needs_permit: bool,
+            updated_at: int,
+            controlling_minor_faction_id: int,
+            controlling_minor_faction: str,
+            reserve_type_id: int,
+            reserve_type: str,
     ) -> None:
         """
         Add a system from data primarily existing in the EDDB API systems JSON.
@@ -201,36 +201,36 @@ class Database:
         self.__conn.commit()
 
     async def add_systems(
-        self,
-        systems: List[
-            Tuple[
-                int,
-                int,
-                str,
-                float,
-                float,
-                float,
-                int,
-                bool,
-                int,
-                str,
-                int,
-                str,
-                int,
-                str,
-                int,
-                str,
-                str,
-                str,
-                int,
-                bool,
-                int,
-                int,
-                str,
-                int,
-                str,
-            ]
-        ],
+            self,
+            systems: List[
+                Tuple[
+                    int,
+                    int,
+                    str,
+                    float,
+                    float,
+                    float,
+                    int,
+                    bool,
+                    int,
+                    str,
+                    int,
+                    str,
+                    int,
+                    str,
+                    int,
+                    str,
+                    str,
+                    str,
+                    int,
+                    bool,
+                    int,
+                    int,
+                    str,
+                    int,
+                    str,
+                ]
+            ],
     ) -> None:
         """
         Add multiple systems in one database commit.
