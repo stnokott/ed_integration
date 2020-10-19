@@ -100,12 +100,10 @@ class EDOptionsFlowHandler(config_entries.OptionsFlow):
         return await self._async_show_form()
 
     async def _async_show_form(self):
+        data_schema = OrderedDict()
+        data_schema[vol.Required(KEY_POP_SYSTEMS_REFRESH_INTERVAL, default=24)] = int
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(KEY_POP_SYSTEMS_REFRESH_INTERVAL, default=24): int
-                }
-            ),
+            data_schema=vol.Schema(data_schema),
             errors=self._errors
         )
