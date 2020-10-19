@@ -19,7 +19,6 @@ from custom_components.ed_integration.const import (
     KEY_EDSM_API_KEY,
     KEY_INARA_API_KEY,
     KEY_POP_SYSTEMS_REFRESH_INTERVAL,
-    PLATFORMS,
     STARTUP_MESSAGE,
 )
 
@@ -59,12 +58,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
-    for platform in PLATFORMS:
-        if entry.options.get(platform, True):
-            coordinator.platforms.append(platform)
-            await hass.async_add_job(
-                hass.config_entries.async_forward_entry_setup(entry, platform)
-            )
+    coordinator.platforms.append("sensor")
+    await hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "sensor")
+    )
 
     entry.add_update_listener(async_reload_entry)
     return True
@@ -92,13 +89,11 @@ class EDDataUpdateCoordinator(DataUpdateCoordinator):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Handle removal of an entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    # coordinator = hass.data[DOMAIN][entry.entry_id]
     unloaded = all(
         await asyncio.gather(
             *[
-                hass.config_entries.async_forward_entry_unload(entry, platform)
-                for platform in PLATFORMS
-                if platform in coordinator.platforms
+                hass.config_entries.async_forward_entry_unload(entry, "sensor")
             ]
         )
     )

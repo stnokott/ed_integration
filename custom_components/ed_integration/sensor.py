@@ -1,5 +1,5 @@
 """Sensor platform for ed_integration."""
-from custom_components.ed_integration.const import DEFAULT_NAME, DOMAIN, ICON, SENSOR
+from custom_components.ed_integration.const import DEFAULT_NAME, DOMAIN, ICON
 from custom_components.ed_integration.entity import EDEntity
 
 
@@ -15,7 +15,7 @@ class EDSensor(EDEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{DEFAULT_NAME}_{SENSOR}"
+        return f"{DEFAULT_NAME}_sensor"
 
     @property
     def state(self):
