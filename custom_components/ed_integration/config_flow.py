@@ -104,7 +104,7 @@ class EDOptionsFlowHandler(config_entries.OptionsFlow):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required("Offline system data refresh interval (h)", default=24): int
+                    vol.Required(KEY_POP_SYSTEMS_REFRESH_INTERVAL, default=24): int
                 }
             ),
             errors=self._errors
