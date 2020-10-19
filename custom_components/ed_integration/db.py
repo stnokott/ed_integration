@@ -72,8 +72,9 @@ class System:
         self.reserve_type = reserve_type
 
     # System representing not available or error state
-    NA_SYSTEM = __init__(-1, -1, 'n/a', 0, 0, 0, 0, False, -1, 'n/a', -1, 'n/a', -1, 'n/a', -1, 'n/a', 'n/a', 'n/a', -1,
-                         False, -1, -1, 'n/a', -1, 'n/a')
+
+    NA_SYSTEM = __init__(-1, -1, 'n/a', 0, 0, 0, -1, False, -1, 'n/a', -1, 'n/a', -1, 'n/a', -1, 'n/a', 'n/a', 'n/a',
+                         -1, False, -1, -1, 'n/a', -1, 'n/a')
 
 
 class Database:
