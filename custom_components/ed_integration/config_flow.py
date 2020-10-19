@@ -79,6 +79,7 @@ class EDOptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize HACS options flow."""
         self.config_entry = config_entry
         self.options = dict(config_entry.options)
+        self._errors = {}
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -87,9 +88,18 @@ class EDOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
         if user_input is not None:
-            self.options.update(user_input)
-            return await self._update_options()
+            if user_input[KEY_POP_SYSTEMS_REFRESH_INTERVAL] < 1:
+                self._errors["base"] = KEY_POP_SYSTEMS_REFRESH_INTERVAL
+                return self._async_show_form()
 
+            self.options.update(user_input)
+            return self.async_create_entry(
+                title=self.config_entry.data.get(KEY_POP_SYSTEMS_REFRESH_INTERVAL), data=self.options
+            )
+
+        return self._async_show_form()
+
+    async def _async_show_form(self):
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
@@ -97,10 +107,5 @@ class EDOptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Required("Offline system data refresh interval (h)", default=24): int
                 }
             ),
-        )
-
-    async def _update_options(self):
-        """Update config entry options."""
-        return self.async_create_entry(
-            title=self.config_entry.data.get(KEY_POP_SYSTEMS_REFRESH_INTERVAL), data=self.options
+            errors=self._errors
         )
