@@ -90,14 +90,14 @@ class EDOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             if user_input[KEY_POP_SYSTEMS_REFRESH_INTERVAL] < 1:
                 self._errors["base"] = KEY_POP_SYSTEMS_REFRESH_INTERVAL
-                return self._async_show_form()
+                return await self._async_show_form()
 
             self.options.update(user_input)
             return self.async_create_entry(
                 title=self.config_entry.data.get(KEY_POP_SYSTEMS_REFRESH_INTERVAL), data=self.options
             )
 
-        return self._async_show_form()
+        return await self._async_show_form()
 
     async def _async_show_form(self):
         return self.async_show_form(
