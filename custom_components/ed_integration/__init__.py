@@ -59,7 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     coordinator.platforms.append("sensor")
-    await hass.async_create_task(
+    hass.async_add_job(
         hass.config_entries.async_forward_entry_setup(entry, "sensor")
     )
 
