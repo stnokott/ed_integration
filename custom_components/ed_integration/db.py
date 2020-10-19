@@ -1,5 +1,4 @@
 """Provides system database related functions"""
-import asyncio
 import logging
 from math import pow, sqrt
 import os
@@ -98,7 +97,7 @@ class Database:
 
         query = self.__conn.execute(self.__get_db_tables_sql_str)
         if "SYSTEMS" not in (t[0] for t in query.fetchall()):
-            asyncio.run(self.reset())
+            await self.reset()
 
     async def reset(self):
         """
