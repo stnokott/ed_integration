@@ -24,8 +24,7 @@ from custom_components.ed_integration.const import (
 
 from .client import Client, Configuration
 
-SCAN_INTERVAL = timedelta(seconds=30)
-
+SCAN_INTERVAL = timedelta(seconds=60)
 _LOGGER = logging.getLogger(__name__)
 
 
