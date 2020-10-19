@@ -2,10 +2,7 @@
 from custom_components.ed_integration.const import DOMAIN, ICON
 from custom_components.ed_integration.entity import EDEntity
 
-from .const import (
-    KEY_CMDR_NAME,
-    KEY_POP_SYSTEMS_REFRESH_INTERVAL
-)
+from .const import KEY_CMDR_NAME
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
@@ -20,12 +17,11 @@ class EDSensor(EDEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Refresh every {self.config_entry.data[KEY_POP_SYSTEMS_REFRESH_INTERVAL]}"
+        return f"Elite Dangerous CMDR {self.config_entry.data.get(KEY_CMDR_NAME)}"
 
     @property
     def state(self):
         """Return the state of the sensor."""
-        self.config_entry.data.get(KEY_CMDR_NAME)
         return self.coordinator.data.get("static")
 
     @property
