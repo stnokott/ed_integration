@@ -71,6 +71,10 @@ class System:
         self.reserve_type_id = reserve_type_id
         self.reserve_type = reserve_type
 
+    # System representing not available or error state
+    NA_SYSTEM = __init__(-1, -1, 'n/a', 0, 0, 0, 0, False, -1, 'n/a', -1, 'n/a', -1, 'n/a', -1, 'n/a', 'n/a', 'n/a', -1,
+                         False, -1, -1, 'n/a', -1, 'n/a')
+
 
 class Database:
     """
@@ -99,7 +103,7 @@ class Database:
         if "SYSTEMS" not in (t[0] for t in query.fetchall()):
             self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Drops and recreates all database tables, dropping all data (!).
         """
@@ -134,7 +138,7 @@ class Database:
         controlling_minor_faction: str,
         reserve_type_id: int,
         reserve_type: str,
-    ):
+    ) -> None:
         """
         Add a system from data primarily existing in the EDDB API systems JSON.
         :param sid: EDDB system ID
@@ -226,7 +230,7 @@ class Database:
                 str,
             ]
         ],
-    ):
+    ) -> None:
         """
         Add multiple systems in one database commit.
         :param systems: list of tuple as described in add_system
@@ -235,7 +239,7 @@ class Database:
         self.__conn.executemany(self.__update_station_sql_str, systems)
         self.__conn.commit()
 
-    async def get_system_by_id(self, sid: int):
+    async def get_system_by_id(self, sid: int) -> System:
         """
         Gets System instance from database by its ID
         :param sid: seeked system ID
@@ -252,7 +256,7 @@ class Database:
         result = query.fetchone()
         return System(*result)
 
-    async def get_system_by_name(self, name: str):
+    async def get_system_by_name(self, name: str) -> System:
         """
         Gets System instance from database by its name
         :param name: seeked system name
@@ -269,7 +273,7 @@ class Database:
         result = query.fetchone()
         return System(*result)
 
-    async def get_closest_allied_system(self, id1: int, power: str):
+    async def get_closest_allied_system(self, id1: int, power: str) -> System:
         """
         Gets closest system in 3D space that is under control by the specified powerplay faction.
         :param id1: EDDB ID of reference system
@@ -277,7 +281,7 @@ class Database:
         :return: System instance, if found. None if player is not pledged.
         """
         if power is None or power == "":
-            return None
+            return System.NA_SYSTEM
         calc_sql_str = (
             "WITH distances AS ("
             "   SELECT b.id as id,"
