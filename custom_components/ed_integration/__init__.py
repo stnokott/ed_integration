@@ -72,7 +72,7 @@ class EDDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, cmdr_name, edsm_api_key, inara_api_key, pop_systems_refresh_interval):
         """Initialize."""
         config = Configuration(cmdr_name, edsm_api_key, inara_api_key, pop_systems_refresh_interval)
-        self.api = Client(config)
+        self.api = Client(hass, config)
         self.platforms = []
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
