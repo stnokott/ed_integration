@@ -263,6 +263,7 @@ class Database:
         :param name: seeked system name
         :return: System instance, if found
         """
+        self._logger.debug(f"Entering <{self.get_system_by_name.__name__}>")
         select_sql_str = (
             "SELECT id, edsm_id, name, x, y, z, population, is_populated, government_id, government, "
             "allegiance_id, allegiance, security_id, security, primary_economy_id, primary_economy, "
@@ -272,7 +273,9 @@ class Database:
         )
         query = self.__conn.execute(select_sql_str, [name])
         result = query.fetchone()
-        return System(*result)
+        system = System(*result)
+        self._logger.debug(f"Retrieved system from db: <{system.name}>")
+        return system
 
     async def get_closest_allied_system(self, id1: int, power: str) -> System:
         """
