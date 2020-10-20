@@ -142,55 +142,6 @@ class Client:
         }
         return data
 
-    async def get_last_known_position_sys(self) -> System:
-        """
-        Gets an instance of System representing the last known location of the corresponding player from EDSM.
-        :return: System instance of last known location
-        :rtype: System
-        """
-        api_key = self._config.edsm_api_key if self._config.edsm_api_key != "" else None
-        params = {"commanderName": CMDR_NAME, "apiKey": api_key}
-        r = requests.get(URL_POSITION, params)
-        data = r.json()
-        try:
-            msgnum = data["msgnum"]
-            if msgnum != 100:
-                if msgnum in event_codes_edsm:
-                    _LOGGER.warning(f"Unsuccessful EDSM request: {event_codes_edsm[msgnum]}")
-                    return System.NA_SYSTEM
-                _LOGGER.warning(f"Unsuccessful EDSM request, undefined response event code: {data['msg']}")
-                return System.NA_SYSTEM
-            system_name = data["system"]
-            return await self._db.get_system_by_name(system_name)
-        except (KeyError, TypeError):
-            return System.NA_SYSTEM
-
-    async def get_balance_str(self) -> str:  # TODO: make graph
-        """
-        Gets current player balance from EDSM.
-        :return: Player balance
-        :rtype: int
-        """
-        if self._config.edsm_api_key is None or self._config.edsm_api_key == "":
-            # TODO: error handling with HASS
-            return 'No API key provided'
-        params = {"commanderName": CMDR_NAME, "apiKey": self._config.edsm_api_key}
-        r = requests.get(URL_CREDITS, params)
-        data = r.json()
-        try:
-            msgnum = data["msgnum"]
-            if msgnum != 100:
-                if msgnum in event_codes_edsm:
-                    return event_codes_edsm[msgnum]
-                return f"Error: {data['msg']}"
-            credits_ = data["credits"][0]
-            balance = credits_["balance"]
-            loan = credits_["loan"]
-            total = balance - loan
-            return f"{f'{total:n}'} Cr"
-        except (KeyError, TypeError) as e:
-            return f"Unknown error occured: {e}"
-
     async def is_systems_json_expired(self) -> bool:
         """
         Check in accordance to user settings and last refresh if the systems database needs to be refreshed from EDDB.
@@ -276,6 +227,59 @@ class Client:
             )
             # TODO: param with retry count, fail after n retries
             await self.refresh_system_data(True)
+
+    async def get_last_known_position_sys(self) -> System:
+        """
+        Gets an instance of System representing the last known location of the corresponding player from EDSM.
+        :return: System instance of last known location
+        :rtype: System
+        """
+        _LOGGER.debug(f"Entering <{self.get_last_known_position_sys.__name__}>")
+        api_key = self._config.edsm_api_key if self._config.edsm_api_key != "" else None
+        params = {"commanderName": CMDR_NAME, "apiKey": api_key}
+        r = requests.get(URL_POSITION, params)
+        data = r.json()
+        _LOGGER.debug(f"EDSM response: {data}")
+        try:
+            msgnum = data["msgnum"]
+            if msgnum != 100:
+                if msgnum in event_codes_edsm:
+                    _LOGGER.warning(f"Unsuccessful EDSM request: {event_codes_edsm[msgnum]}")
+                    return System.NA_SYSTEM
+                _LOGGER.warning(f"Unsuccessful EDSM request, undefined response event code: {data['msg']}")
+                return System.NA_SYSTEM
+            system_name = data["system"]
+            _LOGGER.debug(f"Retrieved current system name: <{system_name}>")
+            await self.refresh_system_data()
+            return await self._db.get_system_by_name(system_name)
+        except (KeyError, TypeError):
+            return System.NA_SYSTEM
+
+    async def get_balance_str(self) -> str:  # TODO: make graph
+        """
+        Gets current player balance from EDSM.
+        :return: Player balance
+        :rtype: int
+        """
+        if self._config.edsm_api_key is None or self._config.edsm_api_key == "":
+            # TODO: error handling with HASS
+            return 'No API key provided'
+        params = {"commanderName": CMDR_NAME, "apiKey": self._config.edsm_api_key}
+        r = requests.get(URL_CREDITS, params)
+        data = r.json()
+        try:
+            msgnum = data["msgnum"]
+            if msgnum != 100:
+                if msgnum in event_codes_edsm:
+                    return event_codes_edsm[msgnum]
+                return f"Error: {data['msg']}"
+            credits_ = data["credits"][0]
+            balance = credits_["balance"]
+            loan = credits_["loan"]
+            total = balance - loan
+            return f"{f'{total:n}'} Cr"
+        except (KeyError, TypeError) as e:
+            return f"Unknown error occured: {e}"
 
     async def get_cmdr_power_str(self) -> str:
         """
