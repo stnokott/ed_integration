@@ -57,8 +57,8 @@ class Configuration:
     ):
         # set member values
         self.__cmdr_name = cmdr_name
-        self.__inara_api_key = edsm_api_key
-        self.__edsm_api_key = inara_api_key
+        self.__inara_api_key = inara_api_key
+        self.__edsm_api_key = edsm_api_key
         self.__pop_systems_refresh_interval = pop_systems_refresh_interval or 24
         self.__pop_systems_last_download = None
 
