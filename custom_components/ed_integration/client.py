@@ -9,6 +9,7 @@ import sqlite3
 import urllib.parse
 import urllib.request
 
+from homeassistant.core import HomeAssistant
 import ijson
 import requests
 
@@ -125,7 +126,8 @@ class Configuration:
 class Client:
     """API client"""
 
-    def __init__(self, config: Configuration):
+    def __init__(self, hass: HomeAssistant, config: Configuration):
+        self._hass = hass
         self._config = config
         self._db = Database(_LOGGER)
 
@@ -172,12 +174,15 @@ class Client:
         params = {"Accept-Encoding": "gzip, deflate, sdch"}
         data = urllib.parse.urlencode(params)
         data = data.encode("ascii")
-        with urllib.request.urlopen(URL_EDDB_POP_SYSTEMS_JSON, data) as response, open(
-            POP_SYSTEMS_JSON_FILEPATH, "wb"
-        ) as out_file:
-            _LOGGER.debug("Writing to %s..." % POP_SYSTEMS_JSON_FILEPATH)
-            shutil.copyfileobj(response, out_file)
 
+        def wrapper():
+            """Wrapper for sync json retrieval"""
+            with urllib.request.urlopen(URL_EDDB_POP_SYSTEMS_JSON, data) as response, open(
+                    POP_SYSTEMS_JSON_FILEPATH, "wb"
+            ) as out_file:
+                _LOGGER.debug("Writing to %s..." % POP_SYSTEMS_JSON_FILEPATH)
+                shutil.copyfileobj(response, out_file)
+        await self._hass.async_add_executor_job(wrapper)
         _LOGGER.debug("Updating config for last_download...")
         self._config.pop_systems_last_download = datetime.datetime.now()
 
@@ -187,7 +192,11 @@ class Client:
         # Push changes to database
         try:
             with open(POP_SYSTEMS_JSON_FILEPATH, "r") as systems_json:
-                systems = ijson.items(systems_json, "item")
+                def wrapper():
+                    """Wrapper for sync json parsing"""
+                    return ijson.items(systems_json, "item")
+                systems = await self._hass.async_add_executor_job(wrapper)
+                _LOGGER.debug('Systems JSON loaded from filesystem')
                 systems_list = []
                 for s in systems:
                     systems_list.append(
@@ -237,7 +246,11 @@ class Client:
         _LOGGER.debug(f"Entering <{self.get_last_known_position_sys.__name__}>")
         api_key = self._config.edsm_api_key if self._config.edsm_api_key != "" else None
         params = {"commanderName": CMDR_NAME, "apiKey": api_key}
-        r = requests.get(URL_POSITION, params)
+
+        def wrapper():
+            """Wrapper for sync position request"""
+            return requests.get(URL_POSITION, params)
+        r = await self._hass.async_add_executor_job(wrapper)
         data = r.json()
         _LOGGER.debug(f"EDSM response: {data}")
         try:
@@ -265,7 +278,11 @@ class Client:
             # TODO: error handling with HASS
             return 'No API key provided'
         params = {"commanderName": CMDR_NAME, "apiKey": self._config.edsm_api_key}
-        r = requests.get(URL_CREDITS, params)
+
+        def wrapper():
+            """Wrapper for sync balance request"""
+            return requests.get(URL_CREDITS, params)
+        r = await self._hass.async_add_executor_job(wrapper)
         data = r.json()
         try:
             msgnum = data["msgnum"]
@@ -303,7 +320,11 @@ class Client:
                 }
             ],
         }
-        r = requests.post(URL_INARA, data=json.dumps(payload))
+
+        def wrapper():
+            """Wrapper for sync cmdr profile request"""
+            return requests.post(URL_INARA, data=json.dumps(payload))
+        r = await self._hass.async_add_executor_job(wrapper)
         try:
             header = r.json()["header"]
             if header["eventStatus"] != 200:
