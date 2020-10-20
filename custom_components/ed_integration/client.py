@@ -60,7 +60,7 @@ class Configuration:
         self.__inara_api_key = inara_api_key
         self.__edsm_api_key = edsm_api_key
         self.__pop_systems_refresh_interval = pop_systems_refresh_interval or 24
-        self.__pop_systems_last_download = None
+        self.__pop_systems_last_download = datetime.datetime.fromisocalendar(1900, 1, 1)
 
     def get_cmdr_name(self):
         return self.__cmdr_name
