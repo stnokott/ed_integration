@@ -138,7 +138,7 @@ class Client:
             "data": {
                 "time": datetime.time(),
                 "static": f"Providing data for CMDR {self._config.cmdr_name}.",
-                "location_str": (await self.get_last_known_position_sys()).name,
+                "location_str": f"Location: {(await self.get_last_known_position_sys()).name}",
                 "none": None,
             },
         }
@@ -265,7 +265,8 @@ class Client:
             _LOGGER.debug(f"Retrieved current system name: <{system_name}>")
             await self.refresh_system_data()
             return await self._db.get_system_by_name(system_name)
-        except (KeyError, TypeError):
+        except (KeyError, TypeError) as e:
+            _LOGGER.warning(f"Unknown error occured while parsing response JSON: {e}")
             return System.NA_SYSTEM
 
     async def get_balance_str(self) -> str:  # TODO: make graph
