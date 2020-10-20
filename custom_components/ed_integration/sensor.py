@@ -17,7 +17,7 @@ class EDSensor(EDEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Elite Dangerous CMDR {self.config_entry.data.get(KEY_CMDR_NAME)}"
+        return f"CMDR {self.config_entry.data.get(KEY_CMDR_NAME)}"
 
     @property
     def state(self):
