@@ -143,7 +143,6 @@ class Client:
         data = {
             "cmdr_name": self._config.cmdr_name,
             "data": {
-                "time": datetime.time(),
                 "static": f"Providing data for CMDR {self._config.cmdr_name}.",
                 KEY_OUTPUT_LOCATION_STR: location_str,
                 "none": None,
