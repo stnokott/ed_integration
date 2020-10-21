@@ -16,7 +16,7 @@ KEY_POP_SYSTEMS_REFRESH_INTERVAL = "pop_systems_refresh_interval"
 KEY_OUTPUT_LOCATION_STR = "location_str"
 
 # Icons
-ICON = "mdi:sun"
+ICON_LOCATION = "mdi:map-marker"
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------

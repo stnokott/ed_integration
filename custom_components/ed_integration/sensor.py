@@ -1,5 +1,5 @@
 """Sensor platform for ed_integration."""
-from custom_components.ed_integration.const import DOMAIN, ICON
+from custom_components.ed_integration.const import DOMAIN, ICON_LOCATION
 from custom_components.ed_integration.entity import EDEntity
 
 from .const import KEY_CMDR_NAME, KEY_OUTPUT_LOCATION_STR
@@ -27,4 +27,4 @@ class EDLocationSensor(EDEntity):
     @property
     def icon(self):
         """Return the icon of the sensor."""
-        return ICON
+        return ICON_LOCATION
