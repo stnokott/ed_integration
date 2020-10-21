@@ -14,6 +14,7 @@ import ijson
 import requests
 
 from .db import Database, System
+from .const import KEY_OUTPUT_LOCATION_STR
 
 cwd = os.path.dirname(__file__)
 
@@ -144,7 +145,7 @@ class Client:
             "data": {
                 "time": datetime.time(),
                 "static": f"Providing data for CMDR {self._config.cmdr_name}.",
-                "location_str": {location_str},
+                KEY_OUTPUT_LOCATION_STR: location_str,
                 "none": None,
             },
         }

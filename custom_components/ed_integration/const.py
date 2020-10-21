@@ -13,18 +13,10 @@ KEY_EDSM_API_KEY = "edsm_api_key"
 KEY_INARA_API_KEY = "inara_api_key"
 KEY_POP_SYSTEMS_REFRESH_INTERVAL = "pop_systems_refresh_interval"
 
+KEY_OUTPUT_LOCATION_STR = "location_str"
+
 # Icons
-ICON = "mdi:format-quote-close"
-
-# Device classes
-BINARY_SENSOR_DEVICE_CLASS = "connectivity"
-
-# Configuration and options
-CONF_ENABLED = "enabled"
-
-# Defaults
-DEFAULT_NAME = DOMAIN
-
+ICON = "mdi:sun"
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
