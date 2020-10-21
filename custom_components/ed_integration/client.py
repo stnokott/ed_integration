@@ -144,7 +144,7 @@ class Client:
             "data": {
                 "time": datetime.time(),
                 "static": f"Providing data for CMDR {self._config.cmdr_name}.",
-                "location_str": f"Location: {location_str}",
+                "location_str": {location_str},
                 "none": None,
             },
         }
