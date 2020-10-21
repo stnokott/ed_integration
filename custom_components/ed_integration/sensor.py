@@ -2,27 +2,27 @@
 from custom_components.ed_integration.const import DOMAIN, ICON
 from custom_components.ed_integration.entity import EDEntity
 
-from .const import KEY_CMDR_NAME
+from .const import KEY_CMDR_NAME, KEY_OUTPUT_LOCATION_STR
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Setup sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices([EDSensor(coordinator, entry)])
+    async_add_devices([EDLocationSensor(coordinator, entry)])
 
 
-class EDSensor(EDEntity):
+class EDLocationSensor(EDEntity):
     """ed_integration Sensor class."""
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"CMDR {self.config_entry.data.get(KEY_CMDR_NAME)}"
+        return f"cmdr_{self.config_entry.data.get(KEY_CMDR_NAME)}_location"
 
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self.coordinator.data.get("location_str")
+        return self.coordinator.data.get(KEY_OUTPUT_LOCATION_STR)
 
     @property
     def icon(self):
