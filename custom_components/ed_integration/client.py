@@ -64,6 +64,10 @@ class Configuration:
         self.__pop_systems_last_download = datetime.datetime.fromisocalendar(1900, 1, 1)
 
     def get_cmdr_name(self):
+        """
+        Getter for in-game CMDR name
+        :return CMDR name
+        """
         return self.__cmdr_name
 
     def set_cmdr_name(self, cmdr_name: str):
@@ -132,13 +136,15 @@ class Client:
         self._db = Database(_LOGGER)
 
     async def async_get_data(self):
-        """Return sample data."""
+        """Return data."""
+        location_sys = await self.get_last_known_position_sys()
+        location_str = location_sys.name
         data = {
             "cmdr_name": self._config.cmdr_name,
             "data": {
                 "time": datetime.time(),
                 "static": f"Providing data for CMDR {self._config.cmdr_name}.",
-                "location_str": f"Location: {(await self.get_last_known_position_sys()).name}",
+                "location_str": f"Location: {location_str}",
                 "none": None,
             },
         }
@@ -258,16 +264,16 @@ class Client:
             if msgnum != 100:
                 if msgnum in event_codes_edsm:
                     _LOGGER.warning(f"Unsuccessful EDSM request: {event_codes_edsm[msgnum]}")
-                    return System.NA_SYSTEM
+                    return System()  # empty
                 _LOGGER.warning(f"Unsuccessful EDSM request, undefined response event code: {data['msg']}")
-                return System.NA_SYSTEM
+                return System()  # empty
             system_name = data["system"]
             _LOGGER.debug(f"Retrieved current system name: <{system_name}>")
             await self.refresh_system_data()
             return await self._db.get_system_by_name(system_name)
         except (KeyError, TypeError) as e:
             _LOGGER.warning(f"Unknown error occured while parsing response JSON: {e}")
-            return System.NA_SYSTEM
+            return System()  # empty
 
     async def get_balance_str(self) -> str:  # TODO: make graph
         """
@@ -345,9 +351,9 @@ class Client:
         """
         await self.refresh_system_data()
         power = await self.get_cmdr_power_str()
-        if power is None or power == "":
-            return System.NA_SYSTEM
         last_known_position_sys = await self.get_last_known_position_sys()
+        if power is None or power == "":
+            return System()  # empty
         return await self._db.get_closest_allied_system(
             last_known_position_sys.sid,
             power,
