@@ -28,4 +28,5 @@ class EDEntity(CoordinatorEntity):
         """Return the state attributes."""
         return {
             "static": self.coordinator.data.get("static"),
+            "time": self.coordinator.data.get("time")
         }

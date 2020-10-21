@@ -139,12 +139,13 @@ class Client:
     async def async_get_data(self):
         """Return data."""
         location_sys = await self.get_last_known_position_sys()
-        location_str = location_sys.name
+        now = datetime.datetime.now()
         data = {
             "cmdr_name": self._config.cmdr_name,
             "data": {
                 "static": f"Providing data for CMDR {self._config.cmdr_name}.",
-                KEY_OUTPUT_LOCATION_STR: location_str,
+                "time": f"{now.strftime('%d.%m.%Y, %H:%M:%S')}",
+                KEY_OUTPUT_LOCATION_STR: location_sys.name,
                 "none": None,
             },
         }
