@@ -19,31 +19,31 @@ class System:
 
     def __init__(
             self,
-            sid: int,
-            edsm_id: int,
-            name: str,
-            x: float,
-            y: float,
-            z: float,
-            population: int,
-            is_populated: bool,
-            government_id: int,
-            government: str,
-            allegiance_id: int,
-            allegiance: str,
-            security_id: int,
-            security: str,
-            primary_economy_id: int,
-            primary_economy: str,
-            power: str,
-            power_state: str,
-            power_state_id: int,
-            needs_permit: bool,
-            updated_at: int,
-            controlling_minor_faction_id: int,
-            controlling_minor_faction: str,
-            reserve_type_id: int,
-            reserve_type: str,
+            sid: int = -1,
+            edsm_id: int = -1,
+            name: str = 'n/a',
+            x: float = 0,
+            y: float = 0,
+            z: float = 0,
+            population: int = -1,
+            is_populated: bool = True,
+            government_id: int = -1,
+            government: str = 'n/a',
+            allegiance_id: int = -1,
+            allegiance: str = 'n/a',
+            security_id: int = -1,
+            security: str = 'n/a',
+            primary_economy_id: int = -1,
+            primary_economy: str = 'n/a',
+            power: str = 'n/a',
+            power_state: str = 'n/a',
+            power_state_id: int = -1,
+            needs_permit: bool = False,
+            updated_at: int = -1,
+            controlling_minor_faction_id: int = -1,
+            controlling_minor_faction: str = 'n/a',
+            reserve_type_id: int = -1,
+            reserve_type: str = 'n/a',
     ):
         self.sid = sid
         self.edsm_id = edsm_id
@@ -70,11 +70,6 @@ class System:
         self.controlling_minor_faction = controlling_minor_faction
         self.reserve_type_id = reserve_type_id
         self.reserve_type = reserve_type
-
-
-# System representing not available or error state
-System.NA_SYSTEM = System(-1, -1, 'n/a', 0, 0, 0, -1, False, -1, 'n/a', -1, 'n/a', -1, 'n/a', -1, 'n/a', 'n/a', 'n/a',
-                          -1, False, -1, -1, 'n/a', -1, 'n/a')
 
 
 class Database:
@@ -246,6 +241,7 @@ class Database:
         :param sid: seeked system ID
         :return: System instance, if found
         """
+        self._logger.debug(f"Entering <{self.get_system_by_id.__name__}>")
         select_sql_str = (
             "SELECT id, edsm_id, name, x, y, z, population, is_populated, government_id, government, "
             "allegiance_id, allegiance, security_id, security, primary_economy_id, primary_economy, "
@@ -255,7 +251,12 @@ class Database:
         )
         query = self.__conn.execute(select_sql_str, [sid])
         result = query.fetchone()
-        return System(*result)
+        if result is None:
+            self._logger.debug("No system retrieved from db, returning n/a")
+            return System(sid=sid)
+        system = System(*result)
+        self._logger.debug(f"Retrieved system from db: <{system.name}>")
+        return system
 
     async def get_system_by_name(self, name: str) -> System:
         """
@@ -273,19 +274,23 @@ class Database:
         )
         query = self.__conn.execute(select_sql_str, [name])
         result = query.fetchone()
+        if result is None:
+            self._logger.debug(f"No system retrieved from db, returning unpopulated system: <{name}>")
+            return System(name=name, is_populated=False)
         system = System(*result)
         self._logger.debug(f"Retrieved system from db: <{system.name}>")
         return system
 
-    async def get_closest_allied_system(self, id1: int, power: str) -> System:
+    async def get_closest_allied_system(self, ref_sid: int, power: str) -> System:
         """
         Gets closest system in 3D space that is under control by the specified powerplay faction.
-        :param id1: EDDB ID of reference system
+        :param ref_sid: EDDB ID of reference system
         :param power: name of reference powerplay faction
         :return: System instance, if found. None if player is not pledged.
         """
         if power is None or power == "":
-            return System.NA_SYSTEM
+            # TODO: replace with exception
+            return System(name='Not pledged', sid=ref_sid)
         calc_sql_str = (
             "WITH distances AS ("
             "   SELECT b.id as id,"
@@ -300,7 +305,7 @@ class Database:
             ")"
             "SELECT id, min(distance) FROM distances"
         )
-        query = self.__conn.execute(calc_sql_str, [id1, id1, power])
+        query = self.__conn.execute(calc_sql_str, [ref_sid, ref_sid, power])
         result = query.fetchone()
         return await self.get_system_by_id(result[0])
 
