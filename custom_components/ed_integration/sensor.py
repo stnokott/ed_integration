@@ -17,7 +17,7 @@ class EDLocationSensor(EDEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"cmdr_{self.config_entry.data.get(KEY_CMDR_NAME)}_location"
+        return f"CMDR {self.config_entry.data.get(KEY_CMDR_NAME)}"
 
     @property
     def state(self):
