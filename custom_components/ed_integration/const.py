@@ -2,7 +2,6 @@
 # Base component constants
 NAME = "ED Integration"
 DOMAIN = "ed_integration"
-DOMAIN_DATA = f"{DOMAIN}_data"
 VERSION = "0.0.1"
 
 ISSUE_URL = "https://github.com/custom-components/blueprint/issues"
