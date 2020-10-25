@@ -1,7 +1,7 @@
 """Sensor platform for ed_integration."""
 from custom_components.ed_integration.const import DOMAIN, ICON_LOCATION
 
-from .const import KEY_CMDR_NAME, KEY_OUTPUT_LOCATION_STR, KEY_OUTPUT_BALANCE_STR, NAME, VERSION, ICON_BALANCE
+from .const import KEY_CMDR_NAME, KEY_OUTPUT_LOCATION_STR, KEY_OUTPUT_BALANCE_STR, ICON_BALANCE
 from .entity import EDEntity
 
 
