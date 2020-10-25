@@ -1,5 +1,6 @@
 """Adds config flow for Blueprint."""
 from collections import OrderedDict
+
 from homeassistant import config_entries
 from homeassistant.core import callback
 import voluptuous as vol

@@ -13,8 +13,8 @@ from homeassistant.core import HomeAssistant
 import ijson
 import requests
 
-from .db import Database, System
 from .const import KEY_OUTPUT_LOCATION_STR
+from .db import Database, System
 
 cwd = os.path.dirname(__file__)
 
