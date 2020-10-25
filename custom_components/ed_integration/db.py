@@ -13,6 +13,7 @@ SQL_GET_DB_TABLES_FILEPATH = os.path.join(cwd, "sqls", "get_tables_in_db.sql")
 SQL_UPDATE_SYSTEM_FILEPATH = os.path.join(cwd, "sqls", "update_system.sql")
 SQL_GET_LAST_UPDATED_DATE = os.path.join(cwd, "sqls", "get_last_updated_date.sql")
 SQL_SET_LAST_UPDATED_DATE = os.path.join(cwd, "sqls", "update_last_updated_date.sql")
+DB_TABLES = ["SYSTEMS", "SYSTEMS_META"]
 
 
 class System:
@@ -103,7 +104,8 @@ class Database:
         self._logger.debug("Retrieved prefab sql scripts.")
 
         query = self.__conn.execute(self.__get_db_tables_sql_str)
-        if "SYSTEMS" not in (t[0] for t in query.fetchall()):
+        table_list = (t[0] for t in query.fetchall())
+        if not set(DB_TABLES) <= set(table_list):  # if tables not in db, do reset
             self.reset()
 
     def reset(self) -> None:
