@@ -1,0 +1,1 @@
+SELECT last_updated FROM SYSTEMS_META WHERE id = 1

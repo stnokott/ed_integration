@@ -36,3 +36,25 @@ create unique index SYSTEMS_id_uindex
 
 create unique index SYSTEMS_name_uindex
 	on SYSTEMS (name);
+
+drop table if exists SYSTEMS_META;
+
+create table SYSTEMS_META
+(
+    id integer not null
+        constraint META_pk
+            primary key,
+    last_updated_date timestamp
+);
+
+create unique index SYSTEMS_META_id_uindex
+    on SYSTEMS_META (id);
+
+insert into SYSTEMS_META
+(
+    id,
+    last_updated
+) VALUES (
+    1,
+    NULL
+);

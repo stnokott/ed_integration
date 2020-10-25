@@ -1,0 +1,1 @@
+UPDATE SYSTEMS_META SET last_updated = ? WHERE id = 1

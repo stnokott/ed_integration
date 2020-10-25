@@ -1,4 +1,5 @@
 """Provides system database related functions"""
+import datetime
 import logging
 from math import pow, sqrt
 import os
@@ -10,6 +11,8 @@ DB_FILEPATH = os.path.join(cwd, "database.db")
 SQL_RESET_DB_FILEPATH = os.path.join(cwd, "sqls", "init.sql")
 SQL_GET_DB_TABLES_FILEPATH = os.path.join(cwd, "sqls", "get_tables_in_db.sql")
 SQL_UPDATE_SYSTEM_FILEPATH = os.path.join(cwd, "sqls", "update_system.sql")
+SQL_GET_LAST_UPDATED_DATE = os.path.join(cwd, "sqls", "get_last_updated_date.sql")
+SQL_SET_LAST_UPDATED_DATE = os.path.join(cwd, "sqls", "update_last_updated_date.sql")
 
 
 class System:
@@ -93,6 +96,10 @@ class Database:
             self.__get_db_tables_sql_str = get_db_tables_sql_file.read()
         with open(SQL_RESET_DB_FILEPATH) as reset_db_file:
             self.__reset_db_sql_str = reset_db_file.read()
+        with open(SQL_GET_LAST_UPDATED_DATE) as get_last_updated_date_file:
+            self.__get_last_updated_date = get_last_updated_date_file.read()
+        with open(SQL_SET_LAST_UPDATED_DATE) as set_last_updated_date_file:
+            self.__set_last_updated_date = set_last_updated_date_file.read()
         self._logger.debug("Retrieved prefab sql scripts.")
 
         query = self.__conn.execute(self.__get_db_tables_sql_str)
@@ -308,6 +315,22 @@ class Database:
         query = self.__conn.execute(calc_sql_str, [ref_sid, ref_sid, power])
         result = query.fetchone()
         return await self.get_system_by_id(result[0])
+
+    async def get_last_refreshed_datetime(self) -> datetime.datetime:
+        """
+        Gets date of last system data update from db
+        """
+        query = self.__conn.executescript(self.__get_last_updated_date)
+        result = query.fetchone()
+        return result
+
+    async def set_last_refreshed_datetime(self, last_refreshed: datetime.datetime) -> None:
+        """
+        Writes date of last_system_date_update to db
+        """
+        self.__conn.execute(self.__set_last_updated_date, [last_refreshed])
+        self.__conn.commit()
+        self._logger.debug('Updated last_updated in db.')
 
     def __del__(self):
         self.__conn.close()

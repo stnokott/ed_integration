@@ -106,25 +106,11 @@ class Configuration:
     def set_pop_systems_refresh_interval(self, interval: int):
         self.__pop_systems_refresh_interval = interval
 
-    def get_pop_systems_last_download(self):
-        """
-        Getter for the time of the last system database refresh. Needed to check if a refresh is needed.
-        :return: datetime instance
-        :rtype: datetime.datetime
-        """
-        return self.__pop_systems_last_download
-
-    def set_pop_systems_last_download(self, last_download: datetime.datetime):
-        self.__pop_systems_last_download = last_download
-
     cmdr_name = property(get_cmdr_name, set_cmdr_name)
     edsm_api_key = property(get_edsm_api_key, set_edsm_api_key)
     inara_api_key = property(get_inara_api_key, set_inara_api_key)
     pop_systems_refresh_interval = property(
         get_pop_systems_refresh_interval, set_pop_systems_refresh_interval
-    )
-    pop_systems_last_download = property(
-        get_pop_systems_last_download, set_pop_systems_last_download
     )
 
 
@@ -159,7 +145,7 @@ class Client:
         :return: Boolean if data is expired
         :rtype: bool
         """
-        last_download_time = self._config.pop_systems_last_download
+        last_download_time = await self._db.get_last_refreshed_datetime()
         if last_download_time is None or not os.path.isfile(POP_SYSTEMS_JSON_FILEPATH):
             return True
         now_time = datetime.datetime.now()
@@ -192,8 +178,8 @@ class Client:
                 _LOGGER.debug("Writing to %s..." % POP_SYSTEMS_JSON_FILEPATH)
                 shutil.copyfileobj(response, out_file)
         await self._hass.async_add_executor_job(wrapper)
-        _LOGGER.debug("Updating config for last_download...")
-        self._config.pop_systems_last_download = datetime.datetime.now()
+        _LOGGER.debug("Updating last_download...")
+        await self._db.set_last_refreshed_datetime(datetime.datetime.now())
 
         if reset:
             self._db.reset()
@@ -245,6 +231,8 @@ class Client:
             )
             # TODO: param with retry count, fail after n retries
             await self.refresh_system_data(True)
+        os.remove(POP_SYSTEMS_JSON_FILEPATH)
+        _LOGGER.debug('Deleted systems JSON.')
 
     async def get_last_known_position_sys(self) -> System:
         """
