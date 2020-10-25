@@ -1,8 +1,8 @@
 """Sensor platform for ed_integration."""
 from custom_components.ed_integration.const import DOMAIN, ICON_LOCATION
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import KEY_CMDR_NAME, KEY_OUTPUT_LOCATION_STR, KEY_OUTPUT_BALANCE_STR, ICON_BALANCE
-from .entity import EDEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -12,7 +12,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities([EDLocationSensor(coordinator, cmdr_name), EDBalanceSensor(coordinator, cmdr_name)])
 
 
-class EDLocationSensor(EDEntity):
+class EDLocationSensor(CoordinatorEntity):
     """CMDR location sensor class."""
 
     def __init__(self, coordinator, cmdr_name):
@@ -41,7 +41,7 @@ class EDLocationSensor(EDEntity):
         return ICON_LOCATION
 
 
-class EDBalanceSensor(EDEntity):
+class EDBalanceSensor(CoordinatorEntity):
     """CMDR credits balance sensor class."""
 
     def __init__(self, coordinator, cmdr_name):
@@ -63,6 +63,11 @@ class EDBalanceSensor(EDEntity):
     def state(self):
         """Return the state of the sensor."""
         return self.coordinator.data.get(KEY_OUTPUT_BALANCE_STR)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement"""
+        return "credits"
 
     @property
     def icon(self):
