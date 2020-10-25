@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 import ijson
 import requests
 
-from .const import KEY_OUTPUT_LOCATION_STR
+from .const import KEY_OUTPUT_LOCATION_STR, KEY_OUTPUT_BALANCE_STR
 from .db import Database, System
 
 cwd = os.path.dirname(__file__)
@@ -139,6 +139,7 @@ class Client:
     async def async_get_data(self):
         """Return data."""
         location_sys = await self.get_last_known_position_sys()
+        balance_str = await self.get_balance_str()
         now = datetime.datetime.now()
         data = {
             "cmdr_name": self._config.cmdr_name,
@@ -146,6 +147,7 @@ class Client:
                 "static": f"Providing data for CMDR {self._config.cmdr_name}.",
                 "time": f"{now.strftime('%d.%m.%Y, %H:%M:%S')}",
                 KEY_OUTPUT_LOCATION_STR: location_sys.name,
+                KEY_OUTPUT_BALANCE_STR: balance_str,
                 "none": None,
             },
         }
