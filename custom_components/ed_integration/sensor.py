@@ -5,11 +5,11 @@ from .const import KEY_CMDR_NAME, KEY_OUTPUT_LOCATION_STR, KEY_OUTPUT_BALANCE_ST
 from .entity import EDEntity
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(hass, entry, async_add_entities):
     """Setup sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     cmdr_name = entry.data.get(KEY_CMDR_NAME)
-    async_add_devices([EDLocationSensor(coordinator, cmdr_name), EDBalanceSensor(coordinator, cmdr_name)])
+    async_add_entities([EDLocationSensor(coordinator, cmdr_name), EDBalanceSensor(coordinator, cmdr_name)])
 
 
 class EDLocationSensor(EDEntity):
