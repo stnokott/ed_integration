@@ -44,7 +44,7 @@ create table SYSTEMS_META
     id integer not null
         constraint META_pk
             primary key,
-    last_updated_date timestamp
+    last_updated timestamp
 );
 
 create unique index SYSTEMS_META_id_uindex
