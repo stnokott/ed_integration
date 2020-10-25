@@ -323,7 +323,8 @@ class Database:
         Gets date of last system data update from db
         """
         query = self.__conn.executescript(self.__get_last_updated_date)
-        result = query.fetchone()
+        result = query.fetchone()[0]
+        self._logger.debug(f"Retrieved last_refreshed: {result}")
         return result
 
     async def set_last_refreshed_datetime(self, last_refreshed: datetime.datetime) -> None:
